@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <title>NRK Trøndelag – Siste nyheter</title>
+  <style>
+    body { font-family: sans-serif; margin:0; padding:0; }
+    header { background:#1767CE; color:white; padding:1em; }
+    .news { display:flex; flex-wrap:wrap; gap:1em; padding:1em; }
+    .item { border:1px solid #ccc; border-radius:4px; overflow:hidden; width:300px; }
+    .item img { width:100%; height:auto; }
+    .item h2 { font-size:1.1em; margin:0.5em; }
+    .item p { font-size:0.9em; margin:0.5em; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NRK Trøndelag – Siste nyheter</h1>
+  </header>
+  <div id="news" class="news">
+    <p>Laster nyheter...</p>
+  </div>
+
+  <script>
+    async function loadNews() {
+      const url = 'https://www.nrk.no/trondelag/.rss'; // RSS-feed
+      const res = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+      const text = await res.text();
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, 'application/xml');
+      const items = xml.querySelectorAll('item');
+      const container = document.getElementById('news');
+      container.innerHTML = '';
+
+      items.forEach((it, idx) => {
+        if (idx >= 8) return; // maks 8 nyheter
+        const title = it.querySelector('title')?.textContent;
+        const desc = it.querySelector('description')?.textContent;
+        const enclosure = it.querySelector('enclosure');
+        const imgSrc = enclosure?.getAttribute('url') || '';
+        const link = it.querySelector('link')?.textContent;
+
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <a href="${link}" target="_blank">
+            ${imgSrc ? `<img src="${imgSrc}" alt="${title}">` : ''}
+            <h2>${title}</h2>
+            <p>${desc}</p>
+          </a>`;
+        container.appendChild(div);
+      });
+    }
+
+    loadNews();
+  </script>
+</body>
+</html>
